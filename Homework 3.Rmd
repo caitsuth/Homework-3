@@ -1,0 +1,248 @@
+---
+title: "Homework3"
+author: "Caitlin Sutherland"
+date: "04/02/2020"
+output: html_document
+---
+
+### Part I - ANOVAs
+
+**1. Bring in the Killarney data.**
+
+```{r}
+kill.dat=read.csv("Killarney.csv")
+```
+
+**2. Make a box plot of species diversity by lake status. From the boxplot does it look like there are any differences in plankton diversity among the lake types?**
+
+```{r}
+plot(kill.dat$status,kill.dat$Diversity,main="Plankton species diversity by lake status",xlab="Status",ylab="Number of species",col=c("pink","lightgreen","lightblue"))
+```
+
+Based on the boxplot, the acidic lakes have a lower number of plankton species. Neutral lakes have the highest mean number of plankton species. 
+
+**3. Run an ANOVA to test for difference in species diversity among the three lake types. Display the summary output.**
+
+```{r}
+kill.anova=aov(kill.dat$Diversity~kill.dat$status)
+summary(kill.anova)
+```
+
+**4. What is the appropriate null hypothesis for the ANOVA?**
+
+Null: There is no variance among groups (lake status does not affect plankton diversity).
+
+Alternate: There is variance among groups (lake status affects plankton diversity).
+
+**5. What is the observed test statistic and p-value for the test?**
+
+The observed test statistic is F = 5.43e-06 and the p-value is 0.05. Because the test statistic is < 0.05 we reject the null hypothesis.
+
+**6. Did species diversity differ among these three lake types?**
+
+Yes, species diversity differed among these three lake types.
+
+**7. To determine which groups were significantly different from each other, run the appropriate follow-up test (Tukey tests). Provide output.**
+
+```{r}
+TukeyHSD(kill.anova)
+```
+
+**8. Based on your follow-up test, which groups are significantly different from one another?**
+
+Based on the Tukey test, the Neutral and Acidic groups are significantly different and the Recovered and Acidic groups are significantly different (because the p value for both of these sets is < 0.05). 
+
+**9. Does the Killarney dataset meet the assumptions required for an ANOVA? Perform a Shapiro-Wilk test to examine if the residuals of the fitted model are normally distributed and Levene's test to test for homogeneity of variances.**
+
+```{r}
+shapiro.test(kill.dat$Diversity)
+```
+
+The p-value returned by the S-W normality test is 0.002016, which is less than 0.05. This indicates that the data is not normally distributed. 
+
+```{r}
+library(car)
+leveneTest(kill.dat$Diversity,kill.dat$status)
+```
+
+The p-value returned by the Levene's test is 0.3773, which is greater than 0.05. This indicates that there is no significant difference between the group variances.
+
+Overall, the Killarney dataset does not meet the assumption of normally distributed residuals (as returned by the S-W test) but does met the assumption of homoscedasticity (as returned by the Levene's test).
+
+**10. Run a two-factor ANOVA in R to determine if the number of cancer cases depends on alcohol consumption, tobacco consumption, or their interaction.** 
+
+**a) Provide an ANOVA table from the analysis.**
+
+```{r}
+esoph=read.csv("esoph.csv")
+esoph.dat=aov(esoph$ncases~esoph$Alcohol*esoph$Tobacco)
+summary(esoph.dat)
+```
+
+**b) What is your conclusion about the effects of alcohol and tobacco based on this analysis?**
+
+Since the P value for each factor (alcohol, tobacco, and alcohol+tobacco) is > 0.05, we can conclude that none of these factors affect the rate of esophageal cancer in patients. 
+
+**11. The previous analysis did not include age as a factor. Run a two-factor ANOVA to determine if the number of cases of esophageal cancer depend on age, tobacco use or their interaction.**
+
+**a) Provide an ANOVA table from the analysis.**
+
+```{r}
+esoph.dat2=aov(esoph$ncases~esoph$Age*esoph$Tobacco)
+summary(esoph.dat2)
+```
+
+**b) Run a Tukey test to determine which groups are significantly different.**
+
+```{r}
+TukeyHSD(esoph.dat2)
+```
+
+**c) What is your conclusion about the effect of age and tobacco use based on this analysis?**
+ 
+Based on this analysis, age and the use of tobacco both affect the rate of esophageal cancer in patients (the p value for both factors is < 0.05). In addition, the interaction of these two factors does not affect the rate of esophageal cancer in patients (the p value is > 0.05).
+
+The Tukey test confirms that the age-tobacco use factor is not significant (all p values are much greater than 0.05). The two sets of tobacco-use groups that are significantly different from each other (p < 0.05) are 0-9 g/day & 20-29 g/day and 0-9 g/day & 10-19 g/day. No other pairs exhibited significant difference from each other. This seems to indicate that the rate of esophageal cancer associated with tobacco use is significantly different (higher) for patients that consume more than 20 g tobacco per day but does not increase significantly with increased tobacco use beyond that point.
+
+The Tukey test indicated that the following age groups were significantly different from each other (p < 0.05): 25-34 & 45-54, 25-34 & 55-64, and 25-34 & 65-74. However, the 25-34 & 35-44 groups and the 25-34 & 75+ year groups were not significantly different from each other. This seems to indicate that rate of esophageal cancer changes with age (beyond 44 years) but stops changing betond 75 years of age. A similar pattern is associated with the 35-44 age group: it is significantly different from 45-54, 55-64, and 65-74 but not significantly different from 75+. The other two age groups that were significantly different from each other were 55-64 & 75+ and 65-74 and 75+. 
+
+**12. How do age and alcohol consumption influence esophageal cancer rates? Run a two-factor ANOVA to test whether the number of esophageal cancer cases depend on age, alcohol consuption or their interaction.**
+
+**a) Provide an ANOVA table from the analysis.**
+
+```{r}
+esoph.dat3=aov(esoph$ncases~esoph$Age*esoph$Alcohol)
+summary(esoph.dat3)
+```
+
+**b) Make an interaction plot to plot the results.** 
+
+```{r}
+interaction.plot(esoph$Age,esoph$Alcohol,esoph$ncases,legend=T)
+```
+
+**c) What is your conclusion about the effects of age and alcohol consumption based on this analysis?**
+
+Based on the ANOVA analysis, age and alcohol use both have a significant effect on esophageal cancer rates (p < 0.05). In addition, the interaction of these two factors also has an effect on esophageal cancer rates (p < 0.05). 
+
+The interaction plot further illustrates these relationships. For all levels of alcohol consumption, the number of cases of esophageal cancer increase with age, peak at 55-64 or 65-74 years, and then decline (presumably since the overall number of individuals decreases due to deaths from all causes).
+
+### Part II - Regression and Correlation
+
+**13. Exercise using 'mtcars', a built-in dataset in R.**
+
+```{r}
+cars=mtcars
+cars
+```
+
+**a) Make a scatterplot of weight vs fuel mileage. Does fuel mileage seem to depend on weight?**
+
+```{r}
+plot(cars$wt,cars$mpg)
+```
+
+Fuel mileage seems to be related to weight; it appears that as the car's weight increases its mileage decreases. 
+
+**b) Perform a linear regression to determine if weight has an impact on fuel mileage.**
+
+```{r}
+car.mpg=glm(cars$mpg~cars$wt)
+car.mpg
+```
+
+**c) Add a blue line to the scatterplot indicating the fit of the linear regression. What is the equation of this line based on linear regression results?**
+
+```{r}
+plot(cars$wt,cars$mpg)
+abline(car.mpg,col="blue")
+summary.lm(car.mpg)
+```
+
+The equation of this line is: y = -5.3445x + 37.2851.
+
+**d) Is gas mileage significantly related to car weight? Provide the p-value from the regression results.** 
+
+Yes, gas mileage is significantly related to car weight (p value from regression = 1.29e-10, which is < 0.05).
+
+**14. a) Make a scatterplot of horsepower vs quarter-mile time. Does quarter-mile time seem to depend on horsepower?**
+
+```{r}
+plot(cars$hp,cars$qsec)
+```
+
+Quarter mile time does seem to depend on a car's horsepower; as the horsepower increases, the quarter mile time decreases. 
+
+**b) Perform a linear regression to determine if horsepower has an impact on quarter mile time.**
+
+```{r}
+car.hp=glm(cars$qsec~cars$hp)
+car.hp
+```
+
+**c) Add a blue line to the scatterplot indicating the fit of the linear regression. What is the equation of this line based on linear regression results?**
+
+```{r}
+plot(cars$hp,cars$qsec)
+abline(car.hp,col="blue")
+summary.lm(car.hp)
+```
+
+The equation of this line is: y = -0.018458x + 20.556354.
+
+**d) What would be the quarter mile time for a car with 300 HP according to the regression fit?** 
+
+The quarter mile time for a car with 300 HP would be y = -0.018458*300 + 20.556354, which results in y = 15.02 sec.
+
+**e) Is quarter mile time significantly related to a car's horsepower? Provide the p-value from regression results.**
+
+Horsepower does seem to have a significant relationship with quarter mile time (p = 5.77e-06 which is < 0.05).
+
+**f) Use the gvlma function to determine if the assumptions of a linear regression were met. Provide the output from the analysis. Did this data meet the required assumptions?**
+
+```{r}
+
+library(gvlma)
+gvlma(lm(car.hp))
+```
+
+While the gvlma analysis indicates that the data does not meet the linear regression assumption for Kurtosis, the combined Global Stat test statistic (a combination of the four component tests: Skewness, Kurtosis, Link Function and Heteroscedasticity) indicates that overall the data meets the required assumptions.
+
+**15. a) Find two variables that you think may be correlated.** 
+
+```{r}
+trees=Loblolly
+trees
+```
+
+It is likely that the age and height of the trees in this dataset are correlated.
+
+**b) Plot the relationship between the variables using a scatterplot.**
+
+```{r}
+plot(trees$age,trees$height)
+```
+
+```{r}
+tree.fit=glm(trees$height~trees$age)
+tree.fit
+```
+
+**c) Test for a correlation in R. What is the correlation coefficient?**
+
+The Pearson's correlation coefficient (r) will be calculated by taking the square root of the multiple R-squared value returned in the regression summary. 
+
+```{r}
+summary.lm(tree.fit)
+```
+
+```{r}
+rvalue=sqrt(0.9799)
+```
+
+The multiple R-squared returned by the regression is 0.9799. This results in an r value of `r rvalue`. This indicates a very strong positive correlation between the two variables (tree height and tree age).
+
+**d) Is the correlation significant? Provide the p-value from the test.**
+
+The correlation is significant. The p value returned from the test is < 2e-16, which is < 0.05. We reject the null hypothesis that there is no correlation. 
+
